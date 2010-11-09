@@ -128,6 +128,10 @@ bool processQueryPacket(const InPacket& from_host, OutPacket& to_host) {
 			motor.setOn((from_host.read8(2) & 0x01) != 0);
 			to_host.append8(RC_OK);
 			return true;
+		case SLAVE_CMD_SET_MOTOR_1_RPM:
+			motor.setRPMSpeed(from_host.read32(2));
+			to_host.append8(RC_OK);
+			return true;
 		case SLAVE_CMD_TOGGLE_FAN:
 			board.setFan((from_host.read8(2) & 0x01) != 0);
 			to_host.append8(RC_OK);
@@ -208,16 +212,15 @@ void runHostSlice() {
 	}
 	if (in.isFinished()) {
 		out.reset();
-		uint8_t slave_id = eeprom::getEeprom8(eeprom::SLAVE_ID, 0);
-		uint8_t target = in.read8(0);
+		const uint8_t slave_id = eeprom::getEeprom8(eeprom::SLAVE_ID, 0);
+		const uint8_t target = in.read8(0);
 		packet_in_timeout.abort();
 		// SPECIAL CASE: we always process debug packets!
 		if (processDebugPacket(in,out)) {
 			// okay, processed
-		} else if (target == slave_id || target == 255) {
-			if (processDebugPacket(in, out)) {
-				// okay, processed
-			} else if (processQueryPacket(in, out)) {
+		} else if ( (target == slave_id) || (target == 255) ) {
+			// only process packets for us
+			if (processQueryPacket(in, out)) {
 				// okay, processed
 			} else {
 				// Unrecognized command
