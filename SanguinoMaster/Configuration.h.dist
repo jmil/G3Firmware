@@ -42,7 +42,7 @@
 //#define OPTO_ENDSTOP_1_X
 #define OPTO_ENDSTOP_2_X
 
-#define PACKET_TIMEOUT 1000
+#define PACKET_TIMEOUT 100
 #define HOST_SERIAL_SPEED 38400
 #define SLAVE_SERIAL_SPEED 38400
 
@@ -262,3 +262,57 @@
 #elif defined(REPRAP_MOTHERBOARD_VERSION_2_1)
 #define POINT_QUEUE_SIZE 128
 #endif
+
+#define MAX_FILENAME_SIZE 64
+#define GCODE_BUFFER_SIZE 80
+
+/****************************************************************************************
+ * I2C Address of LCD panel
+ ****************************************************************************************/
+#define LCD_I2C_ADDRESS 0x50  // undef to disable LCD code.
+
+/****************************************************************************************
+ * Specify tool# for heated build platform.
+ ****************************************************************************************/
+#define HEATED_PLATFORM_TOOL 0
+
+/****************************************************************************************
+ * Keypad orientation.  Uncomment if you want the 1 key at the top, like a phone keypad.
+ ****************************************************************************************/
+//#define KEYPAD_ORIENT_ONEONTOP
+
+/****************************************************************************************
+ * Motion configuration for LCD and keypad
+ ****************************************************************************************/
+//#define BELFRY_FABBER_1 1
+#define CUPCAKE_CNC 1
+
+#ifdef BELFRY_FABBER_1
+//#define STEPS_PER_MM_XY   7.874     /* For 10 tooth XL pulley. */
+#define STEPS_PER_MM_XY   13.1234   /* For 15 tooth MXL pulley. */
+#define STEPS_PER_MM_Z  680.315
+#define MAX_MM_PER_MIN_XY 3600
+#define MAX_MM_PER_MIN_Z  100
+
+//#define ENDSTOP_X_MIN_POS   -85.0
+#define ENDSTOP_X_MAX_POS    85.0    /* Undefined when we have no X MAX endstop */
+//#define ENDSTOP_Y_MIN_POS -85.0    /* Undefined when we have no Y MIN endstop */
+#define ENDSTOP_Y_MAX_POS    85.0
+#define Z_AXIS_REST_POS      10.0
+
+#endif
+
+#ifdef CUPCAKE_CNC
+#define STEPS_PER_MM_XY 11.767463 
+#define STEPS_PER_MM_Z  320.0 
+#define MAX_MM_PER_MIN_XY 5000 
+#define MAX_MM_PER_MIN_Z  150 
+
+#define ENDSTOP_X_MIN_POS   -50.0
+//#define ENDSTOP_X_MAX_POS  50.0    /* Undefined when we have no X MAX endstop */
+//#define ENDSTOP_Y_MIN_POS -50.0    /* Undefined when we have no Y MIN endstop */
+#define ENDSTOP_Y_MAX_POS    50.0
+#define Z_AXIS_REST_POS      10.0
+
+#endif
+

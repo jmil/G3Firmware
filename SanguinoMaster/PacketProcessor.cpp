@@ -9,6 +9,8 @@
 #include "Variables.h"
 #include "Version.h"
 #include "Steppers.h"
+#include "Utils.h"
+#include "GCode.h"
 
 // Hack until we completely kill PDEs: prototypes for methods in SanguinoMaster.pde
 void initialize();
@@ -21,14 +23,43 @@ uint8_t underlyingBuffer[COMMAND_BUFFER_SIZE];
 CircularBuffer commandBuffer(COMMAND_BUFFER_SIZE, underlyingBuffer);
 
 unsigned long finishedCommands;
+bool gcode_interactive;
 
 //initialize the firmware to default state.
 void init_commands()
 {
   finishedCommands = 0;
+  gcode_interactive = false;
   commandBuffer.clear();
-
 }
+
+
+void toggle_machine_pause()
+{
+  if (is_machine_paused)
+  {
+    //unpause our machine.
+    is_machine_paused = false;
+
+    //unpause our tools
+    set_tool_pause_state(false);
+
+    //resume stepping.
+    resume_stepping();
+  }
+  else
+  {
+    //pause our activity.
+    is_machine_paused = true;
+
+    //pause our tools
+    set_tool_pause_state(true);
+
+    //pause stepping
+    pause_stepping();
+  }
+}
+
 
 void handle_query(byte cmd);
 
@@ -37,10 +68,20 @@ void process_host_packets()
 {
   unsigned long start = millis();
   unsigned long end = start + PACKET_TIMEOUT;
+  byte d;
 
 #ifdef ENABLE_COMMS_DEBUG
     //Serial.print("IN: ");
 #endif
+
+  // If we're in interactive GCode mode, just pass it to the Gcode parser.
+  if (gcode_interactive) {
+    while (Serial.available() > 0 && gcode_wants_data()) {
+      d = Serial.read();
+      gcode_process_byte(d);
+    }
+    return;
+  }
 
   //do we have a finished packet?
   while (!hostPacket.isFinished())
@@ -49,9 +90,17 @@ void process_host_packets()
     {
       //digitalWrite(DEBUG_PIN, HIGH);
 
-      //grab a byte and process it.
-      byte d;
+      //grab a byte
       d = Serial.read();
+
+      // if the first command looks like GCode.  Enter interactive GCode mode.
+      if (finishedCommands == 0 && d == 'G') {
+	gcode_process_byte(d);
+	gcode_interactive = true;
+	return;
+      }
+
+      //process the byte.
       hostPacket.process_byte(d);
 
 #ifdef ENABLE_COMMS_DEBUG
@@ -190,28 +239,7 @@ void handle_query(byte cmd)
       break;
 
     case HOST_CMD_PAUSE:
-      if (is_machine_paused)
-      {
-        //unpause our machine.
-        is_machine_paused = false;
-
-        //unpause our tools
-        set_tool_pause_state(false);
-
-        //resume stepping.
-	resume_stepping();
-      }
-      else
-      {
-        //pause our activity.
-        is_machine_paused = true;
-
-        //pause our tools
-        set_tool_pause_state(true);
-
-        //pause stepping
-	pause_stepping();
-      }
+      toggle_machine_pause();
       break;
 
     case HOST_CMD_PROBE:
@@ -333,15 +361,28 @@ void handle_commands()
 {
   byte flags = 0;
   
+  static long prevx;
+  static long prevy;
+  static long prevz;
   long x;
   long y;
   long z;
   unsigned long step_delay;
   byte cmd;
 
-  if (is_playing()) {
-    while (commandBuffer.remainingCapacity() > 0 && playback_has_next()) {
-      commandBuffer.append(playback_next());
+  gcode_run_slice();
+
+  if (is_playing() && !is_machine_paused) {
+    if (is_playing_gcode()) {
+      // Playing a .gcode file.
+      while (gcode_wants_data() && playback_has_next()) {
+	gcode_process_byte(playback_next());
+      }
+    } else {
+      // Playing a standard .s3g file.
+      while (commandBuffer.remainingCapacity() > 0 && playback_has_next()) {
+	commandBuffer.append(playback_next());
+      }
     }
   } else {
     digitalWrite(DEBUG_PIN,LOW);
@@ -372,15 +413,26 @@ void handle_commands()
         step_delay = (unsigned long)cursor.read_32();
           
         queue_absolute_point(x, y, z, step_delay);
+	prevx = x;
+	prevy = y;
+	prevz = z;
       
         break;
 
       case HOST_CMD_SET_POSITION:
-	// Belay until we're at a good location.
-	if (!is_point_buffer_empty()) { return; }
-	cli();
-	set_position(LongPoint((long)cursor.read_32(),(long)cursor.read_32(),(long)cursor.read_32()));
-	sei();
+        x = (long)cursor.read_32();
+        y = (long)cursor.read_32();
+        z = (long)cursor.read_32();
+	if (x != prevx || y != prevy || z != prevz) {
+	  // Belay until we're at a good location.
+	  if (!is_point_buffer_empty()) { return; }
+	  cli();
+	  set_position(LongPoint(x,y,z));
+	  sei();
+	  prevx = x;
+	  prevy = y;
+	  prevz = z;
+	}
         break;
 
       case HOST_CMD_FIND_AXES_MINIMUM:

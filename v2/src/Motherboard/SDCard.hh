@@ -24,6 +24,8 @@
 
 namespace sdcard {
 
+const int MAX_FILENAME_SIZE = 64;
+
 /**
  * This enumeration lists all the SD card call error/success codes.
  * Any non-zero value is an error condition.
@@ -90,6 +92,12 @@ void playbackRewind(uint8_t bytes);
 void finishPlayback();
 // True if we're playing back buffered commands from a file, false otherwise
 bool isPlaying();
+// Returns percentage of file we've played back.
+uint8_t percentagePlayed();
+// Returns number of seconds we've been playing a file.
+int16_t secondsPlayed();
+// Returns a pointer to the name of the file being played back.
+const char* getPlaybackFilename();
 
 } // namespace sdcard
 

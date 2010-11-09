@@ -59,6 +59,16 @@ bool isEmpty();
  */
 void push(uint8_t byte);
 
+/**
+ * Push a 16 bit word onto the command buffer.
+ */
+void push16(uint16_t word);
+
+/**
+ * Push a 32 bit value onto the command buffer.
+ */
+void push32(uint32_t word);
+
 }
 
 #endif // COMMAND_HH_

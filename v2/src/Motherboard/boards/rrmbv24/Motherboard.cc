@@ -101,9 +101,24 @@ micros_t Motherboard::getCurrentMicros() {
 	return micros_snapshot;
 }
 
+/// Get the number of milliseconds that have passed since
+/// the board was booted.
+millis_t Motherboard::getCurrentMillis() {
+	millis_t millis_snapshot;
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		millis_snapshot = millis;
+	}
+	return millis_snapshot;
+}
+
 /// Run the motherboard interrupt
 void Motherboard::doInterrupt() {
 	micros += INTERVAL_IN_MICROSECONDS;
+	milliparts += INTERVAL_IN_MICROSECONDS;
+	if (milliparts > 1000) {
+	  milliparts -= 1000;
+	  millis++;
+	}
 	// Do not move steppers if the board is in a paused state
 	if (command::isPaused()) return;
 	steppers::doInterrupt();

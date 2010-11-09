@@ -16,6 +16,8 @@
  */
 
 #include "SDCard.hh"
+#include "Types.hh"
+#include "Motherboard.hh"
 
 #include <avr/io.h>
 #include <string.h>
@@ -188,6 +190,10 @@ bool createFile(char *name)
 bool capturing = false;
 bool playing = false;
 uint32_t capturedBytes = 0L;
+int32_t playedBytes = 0L;
+int32_t playbackFileBytes = 0L;
+millis_t playbackStartMillis = 0L;
+char playbackFilename[MAX_FILENAME_SIZE];
 
 bool isPlaying() {
 	return playing;
@@ -252,6 +258,7 @@ bool has_more;
 
 void fetchNextByte() {
   int16_t read = fat_read_file(file, &next_byte, 1);
+  playedBytes += read;
   has_more = read > 0;
 }
 
@@ -276,6 +283,18 @@ SdErrorCode startPlayback(char* filename) {
   if (!openFile(filename, &file) || file == 0) {
     return SD_ERR_FILE_NOT_FOUND;
   }
+
+  playedBytes = 0L;
+  playbackFileBytes = 0L;
+  fat_seek_file(file, &playbackFileBytes, FAT_SEEK_END);
+  fat_seek_file(file, &playedBytes, FAT_SEEK_SET);
+  playedBytes = 0L;
+
+  strncpy(playbackFilename,filename,sizeof(playbackFilename));
+  playbackFilename[sizeof(playbackFilename)-1] = '\0';
+
+  playbackStartMillis = Motherboard::getBoard().getCurrentMillis();
+
   playing = true;
   fetchNextByte();
   return SD_SUCCESS;
@@ -293,6 +312,25 @@ void finishPlayback() {
 	  sd_raw_sync();
   }
   file = 0;
+}
+
+
+uint8_t percentagePlayed() {
+    return (playedBytes/(playbackFileBytes/100));
+}
+
+
+int16_t secondsPlayed() {
+  if (!playing) {
+      return -1;
+  }
+  millis_t now = Motherboard::getBoard().getCurrentMillis();
+  return (now - playbackStartMillis) / 1000L;
+}
+
+
+const char* getPlaybackFilename() {
+	return playbackFilename;
 }
 
 

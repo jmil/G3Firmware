@@ -61,16 +61,25 @@ if (platform == 'rrmbv12'):
 	mcu='atmega644p'
 	has_queue = 1
 	has_psu = 1
+	has_modtronix_lcd = 0
+elif (platform == 'rrmbv12_modtronixlcd'):
+	default_baud = '38400'
+	mcu='atmega644p'
+	has_queue = 1
+	has_psu = 1
+	has_modtronix_lcd = 1
 elif (platform == 'rrmbv24'):
 	default_baud = '57600'
 	mcu='atmega1280'
 	has_queue = 1
 	has_psu = 0
+	has_modtronix_lcd = 0
 elif (platform == 'mcv10'):
 	default_baud = '57600'
 	mcu='atmega1280'
 	has_queue = 1
 	has_psu = 1
+	has_modtronix_lcd = 0
 else:
 	print "Platform "+platform+" is not currently supported.\n"
 	exit()
@@ -81,9 +90,9 @@ upload_port = ARGUMENTS.get('port','/dev/ttyUSB0')
 upload_baud = ARGUMENTS.get('baud',default_baud)
 upload_prog = ARGUMENTS.get('programmer','stk500v1')
 
-srcs = Glob('*.cc') + Glob('lib_sd/*.c') + Glob('boards/%s/*.cc' % platform) + Glob('#/src/shared/*.cc')
+srcs = Glob('*.cc') + Glob('lib_sd/*.c') + Glob('modtronix_lcd/*.cc') + Glob('boards/%s/*.cc' % platform) + Glob('#/src/shared/*.cc')
 
-include_paths = ['#/src/shared', 'boards/%s' % platform, '.']
+include_paths = ['#/src/shared', 'modtronix_lcd', 'boards/%s' % platform, '.']
 
 flags=[
 	'-DF_CPU='+str(f_cpu),

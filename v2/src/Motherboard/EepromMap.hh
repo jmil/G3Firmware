@@ -45,10 +45,23 @@ const static uint16_t ENDSTOP_INVERSION			= 0x0003;
 // Name of this machine: 32 bytes.
 const static uint16_t MACHINE_NAME				= 0x0020;
 
+// Extruder Head Temperature for LCD interface.  2 bytes.
+const static uint16_t HEAD_TEMP                 = 0x0040;
+
+// Platform Temperature for LCD interface.  2 bytes.
+const static uint16_t PLATFORM_TEMP             = 0x0042;
+
+// LCD contrast setting.  1 byte.
+const static uint16_t LCD_CONTRAST              = 0x0044;
+
+
 void init();
 
 uint8_t getEeprom8(const uint16_t location, const uint8_t default_value);
 uint16_t getEeprom16(const uint16_t location, const uint16_t default_value);
+
+void setEeprom8(const uint16_t location, const uint8_t value);
+void setEeprom16(const uint16_t location, const uint16_t value);
 
 } // namespace eeprom
 

@@ -41,6 +41,8 @@ private:
 	PSU psu;
 	/// Microseconds since board initialization
 	volatile micros_t micros;
+	volatile millis_t millis;
+	volatile micros_t milliparts;
 	/// Private constructor; use the singleton
 	Motherboard();
 
@@ -68,6 +70,11 @@ public:
 	/// the board was initialized.  This value will wrap after
 	/// 2**16 microseconds; callers should compensate for this.
 	micros_t getCurrentMicros();
+
+	/// Get the number of milliseconds that have passed since
+	/// the board was initialized.  This value will wrap after
+	/// 2**16 milliseconds; callers should compensate for this.
+	millis_t getCurrentMillis();
 
 	/// Get the power supply unit interface.
 	PSU& getPSU() { return psu; }

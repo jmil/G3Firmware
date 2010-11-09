@@ -26,11 +26,19 @@
 #include "Motherboard.hh"
 #include "SDCard.hh"
 #include "EepromMap.hh"
+#include "LCD.hh"
+
+#ifdef LCD_I2C_ADDRESS
+#include "AsyncTwi.hh"
+#endif
 
 void reset(bool hard_reset) {
 	ATOMIC_BLOCK(ATOMIC_FORCEON) {
 		Motherboard& board = Motherboard::getBoard();
 		sdcard::reset();
+#if (HAS_MODTRONIX_LCD)
+		lcdifc::init();
+#endif
 		steppers::abort();
 		command::reset();
 		eeprom::init();
@@ -46,7 +54,12 @@ void reset(bool hard_reset) {
 		}
 		if (!tool::reset())
 		{
-			// Fail, but let it go; toggling the PSU is dangerous.
+			// The tool didn't acknowledge our reset!  Force it off by toggling the PSU.
+			board.getPSU().turnOn(false);
+			Timeout t;
+			t.start(1000L*300L); // turn off for 300 ms
+			while (!t.hasElapsed());
+			board.getPSU().turnOn(true);
 		}
 	}
 }
@@ -60,6 +73,8 @@ int main() {
 		tool::runToolSlice();
 		// Host interaction thread.
 		runHostSlice();
+		// LCD interface thread
+		lcdifc::runLcdSlice();
 		// Command handling thread.
 		command::runCommandSlice();
 	}

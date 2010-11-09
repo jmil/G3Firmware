@@ -19,6 +19,7 @@
 #define TYPES_HH_
 
 typedef uint32_t micros_t;
+typedef uint32_t millis_t;
 
 #define AXIS_COUNT 3
 

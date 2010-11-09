@@ -20,6 +20,7 @@
 #include "Errors.hh"
 #include "Motherboard.hh"
 #include "Commands.hh"
+#include "Temps.hh"
 
 #define RETRIES 5
 namespace tool {
@@ -84,6 +85,7 @@ void releaseLock() {
 }
 
 void startTransaction() {
+	temps::sniff();
 	transaction_active = true;
 	timeout.start(TOOL_PACKET_TIMEOUT_MICROS); // 50 ms timeout
 	retries = RETRIES;

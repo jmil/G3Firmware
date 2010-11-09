@@ -34,6 +34,9 @@ void init() {
 		eeprom_write_byte((uint8_t*)eeprom::AXIS_INVERSION,axis_invert);
 		eeprom_write_byte((uint8_t*)eeprom::ENDSTOP_INVERSION,endstop_invert);
 		eeprom_write_byte((uint8_t*)eeprom::MACHINE_NAME,0); // name is null
+		eeprom_write_word((uint16_t*)eeprom::HEAD_TEMP,220);
+		eeprom_write_word((uint16_t*)eeprom::PLATFORM_TEMP,110);
+		eeprom_write_byte((uint8_t*)eeprom::LCD_CONTRAST,254);
 	}
 	// Write version
 	version[0] = firmware_version % 100;
@@ -54,5 +57,16 @@ uint16_t getEeprom16(const uint16_t location, const uint16_t default_value) {
 	if (data == 0xffff) data = default_value;
 	return data;
 }
+
+
+void setEeprom8(const uint16_t location, const uint8_t data) {
+	eeprom_write_block(&data,(void*)location,1);
+}
+
+
+void setEeprom16(const uint16_t location, const uint16_t data) {
+	eeprom_write_block(&data,(void*)location,2);
+}
+
 
 } // namespace eeprom

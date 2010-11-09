@@ -113,6 +113,12 @@
 // The Z maximum endstop pin (active high)
 #define Z_MAX_PIN       Pin(PortA,0)
 
+// Support for I2C based Modtronix LCD and Keypad control
+#define HAS_MODTRONIX_LCD 0
+//#define LCD_I2C_ADDRESS 0x50
+//#define I2C_SDA_PIN Pin(PortC,0)
+//#define I2C_SCL_PIN Pin(PortC,1)
+
 // --- Debugging configuration ---
 // The pin which controls the debug LED (active high)
 #define DEBUG_PIN       Pin(PortB,0)

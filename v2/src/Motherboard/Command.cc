@@ -59,6 +59,35 @@ void push(uint8_t byte) {
 	command_buffer.push(byte);
 }
 
+void push16(uint16_t word) {
+	union {
+		// AVR is little-endian
+		int16_t a;
+		struct {
+			uint8_t data[2];
+		} b;
+	} shared;
+	shared.a = word;
+	push(shared.b.data[0]);
+	push(shared.b.data[1]);
+}
+
+void push32(uint32_t val) {
+	union {
+		// AVR is little-endian
+		int32_t a;
+		struct {
+			uint8_t data[4];
+		} b;
+	} shared;
+	shared.a = val;
+	push(shared.b.data[0]);
+	push(shared.b.data[1]);
+	push(shared.b.data[2]);
+	push(shared.b.data[3]);
+}
+
+
 uint8_t pop8() {
 	return command_buffer.pop();
 }
@@ -109,12 +138,12 @@ void reset() {
 
 // A fast slice for processing commands and refilling the stepper queue, etc.
 void runCommandSlice() {
+	if (paused) { return; }
 	if (sdcard::isPlaying()) {
 		while (command_buffer.getRemainingCapacity() > 0 && sdcard::playbackHasNext()) {
 			command_buffer.push(sdcard::playbackNext());
 		}
 	}
-	if (paused) { return; }
 	if (mode == HOMING) {
 		if (!steppers::isRunning()) {
 			mode = READY;
