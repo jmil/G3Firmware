@@ -264,7 +264,6 @@
 #endif
 
 #define MAX_FILENAME_SIZE 64
-#define GCODE_BUFFER_SIZE 80
 
 /****************************************************************************************
  * I2C Address of LCD panel

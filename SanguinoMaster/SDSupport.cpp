@@ -9,7 +9,6 @@ bool capturing = false;
 bool playing = false;
 uint32_t capturedBytes = 0L;
 
-bool playing_gcode = false;
 int32_t playback_file_length;
 int32_t playback_file_position;
 uint32_t playback_start_millis;
@@ -161,12 +160,6 @@ uint8_t start_playback(char* filename) {
 
   strncpy(playback_filename,filename,sizeof(playback_filename));
   playback_filename[sizeof(playback_filename)-1] = '\0';
-
-  if (strendswith_P(filename, PSTR(".gcode"))) {
-    playing_gcode = true;
-  } else {
-    playing_gcode = false;
-  }
 
   playback_start_millis = millis();
 

@@ -6,7 +6,6 @@
 #include "Configuration.h"
 #include "Timer1.h"
 #include "Utils.h"
-#include "GCode.h"
 
 
 //our point queue variables

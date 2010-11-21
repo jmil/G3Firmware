@@ -465,33 +465,6 @@ platform_temp_screen;
 
 
 
-class TempAdjustScreen: 
-public IntegerEntryScreen {
-public:
-  virtual void init() {
-    uint16_t val = getEEPROMTempAdjust();
-    this->setValue(val);
-  }
-
-  virtual void draw() {
-    SCREEN_CLEAR();
-    SCREEN_WRITE_P(PSTR("Head Temp Adjustment"));
-    IntegerEntryScreen::draw();
-  }
-
-  virtual void cancel() {
-    Screen::change((Screen*)&temp_menu_screen);
-  }
-
-  virtual void commit() {
-    setEEPROMTempAdjust((int8_t)this->getValue());
-    Screen::change((Screen*)&default_screen);
-  }
-} 
-temp_adjust_screen;
-
-
-
 class TempMenuScreen: 
 public Screen {
   virtual void draw() {
@@ -602,9 +575,6 @@ public:
         continue;
       }
       if (strendswith_P(fnbuf, PSTR(".s3g"))) {
-        break;
-      }
-      if (strendswith_P(fnbuf, PSTR(".gcode"))) {
         break;
       }
     }
@@ -822,7 +792,6 @@ public Screen {
     SCREEN_CURSOR_OFF();
     SCREEN_WRITE_P(PSTR("1) Build File\n"));
     SCREEN_WRITE_P(PSTR("2) Change Contrast\n"));
-    SCREEN_WRITE_P(PSTR("3) GCode Temp Adjust"));
   }
 
   virtual uint8_t handleKey(char c) {
@@ -835,9 +804,6 @@ public Screen {
       return 1;
     case '2':
       Screen::change((Screen*)&lcd_contrast_screen);
-      return 1;
-    case '3':
-      Screen::change((Screen*)&temp_adjust_screen);
       return 1;
     case KEY_MENU:
       Screen::change((Screen*)&default_screen);

@@ -10,7 +10,6 @@
 #include "Version.h"
 #include "Steppers.h"
 #include "Utils.h"
-#include "GCode.h"
 
 // Hack until we completely kill PDEs: prototypes for methods in SanguinoMaster.pde
 void initialize();
@@ -23,13 +22,11 @@ uint8_t underlyingBuffer[COMMAND_BUFFER_SIZE];
 CircularBuffer commandBuffer(COMMAND_BUFFER_SIZE, underlyingBuffer);
 
 unsigned long finishedCommands;
-bool gcode_interactive;
 
 //initialize the firmware to default state.
 void init_commands()
 {
   finishedCommands = 0;
-  gcode_interactive = false;
   commandBuffer.clear();
 }
 
@@ -74,15 +71,6 @@ void process_host_packets()
     //Serial.print("IN: ");
 #endif
 
-  // If we're in interactive GCode mode, just pass it to the Gcode parser.
-  if (gcode_interactive) {
-    while (Serial.available() > 0 && gcode_wants_data()) {
-      d = Serial.read();
-      gcode_process_byte(d);
-    }
-    return;
-  }
-
   //do we have a finished packet?
   while (!hostPacket.isFinished())
   {
@@ -92,13 +80,6 @@ void process_host_packets()
 
       //grab a byte
       d = Serial.read();
-
-      // if the first command looks like GCode.  Enter interactive GCode mode.
-      if (finishedCommands == 0 && d == 'G') {
-	gcode_process_byte(d);
-	gcode_interactive = true;
-	return;
-      }
 
       //process the byte.
       hostPacket.process_byte(d);
@@ -370,19 +351,10 @@ void handle_commands()
   unsigned long step_delay;
   byte cmd;
 
-  gcode_run_slice();
-
   if (is_playing() && !is_machine_paused) {
-    if (is_playing_gcode()) {
-      // Playing a .gcode file.
-      while (gcode_wants_data() && playback_has_next()) {
-	gcode_process_byte(playback_next());
-      }
-    } else {
-      // Playing a standard .s3g file.
-      while (commandBuffer.remainingCapacity() > 0 && playback_has_next()) {
-	commandBuffer.append(playback_next());
-      }
+    // Playing a standard .s3g file.
+    while (commandBuffer.remainingCapacity() > 0 && playback_has_next()) {
+      commandBuffer.append(playback_next());
     }
   } else {
     digitalWrite(DEBUG_PIN,LOW);
