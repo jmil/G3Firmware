@@ -56,6 +56,9 @@ def extract_version(f):
 
 version = extract_version(File('#/src/Motherboard/Version.hh'))
 
+if (platform == 'rrmbv24'):
+   platform = 'mb24'
+
 if (platform == 'rrmbv12'):
 	default_baud = '38400'
 	mcu='atmega644p'
@@ -68,7 +71,7 @@ elif (platform == 'rrmbv12_modtronixlcd'):
 	has_queue = 1
 	has_psu = 1
 	has_modtronix_lcd = 1
-elif (platform == 'rrmbv24'):
+elif (platform == 'mb24'):
 	default_baud = '57600'
 	mcu='atmega1280'
 	has_queue = 1
