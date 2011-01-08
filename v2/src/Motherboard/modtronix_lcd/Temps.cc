@@ -47,41 +47,32 @@ int8_t getExtruderDir()
 
 void pollCurrentTemps()
 {
-  for (;;) {
-    if (tool::getLock()) {
-      OutPacket& out = tool::getOutPacket();
-      InPacket& in = tool::getInPacket();
-      out.reset();
-      out.append8(currentToolIndex);
-      out.append8(SLAVE_CMD_GET_TEMP);
-      tool::startTransaction();
-      while (!tool::isTransactionDone()) {
-	tool::runToolSlice();
-      }
-      if (!in.hasError()) {
-	last_head_temp = in.read16(1);
-      }
-      tool::releaseLock();
-      break;
+  if (tool::getLock()) {
+    OutPacket& out = tool::getOutPacket();
+    InPacket& in = tool::getInPacket();
+    out.reset();
+    out.append8(currentToolIndex);
+    out.append8(SLAVE_CMD_GET_TEMP);
+    tool::startTransaction();
+    while (!tool::isTransactionDone()) {
+      tool::runToolSlice();
     }
-  }
-  for (;;) {
-    if (tool::getLock()) {
-      OutPacket& out = tool::getOutPacket();
-      InPacket& in = tool::getInPacket();
-      out.reset();
-      out.append8(lcdcfg::HEATED_PLATFORM_TOOL);
-      out.append8(SLAVE_CMD_GET_PLATFORM_TEMP);
-      tool::startTransaction();
-      while (!tool::isTransactionDone()) {
-	tool::runToolSlice();
-      }
-      if (!in.hasError()) {
-	last_platform_temp = in.read16(1);
-      }
-      tool::releaseLock();
-      break;
+    if (!in.hasError()) {
+      last_head_temp = in.read16(1);
     }
+
+    out.reset();
+    in.reset();
+    out.append8(lcdcfg::HEATED_PLATFORM_TOOL);
+    out.append8(SLAVE_CMD_GET_PLATFORM_TEMP);
+    tool::startTransaction();
+    while (!tool::isTransactionDone()) {
+      tool::runToolSlice();
+    }
+    if (!in.hasError()) {
+      last_platform_temp = in.read16(1);
+    }
+    tool::releaseLock();
   }
 }
 

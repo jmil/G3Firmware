@@ -344,10 +344,10 @@ void runLcdSlice()
     }
   }
 
-  // Every second or so, get an update on the temperatures.
+  // Every two or so seconds, get an update on the temperatures.
   if (temps_timeout.hasElapsed()) {
     temps::pollCurrentTemps();
-    temps_timeout.start(100000L);
+    temps_timeout.start(2000000L);
   }
 
   // If we get a character from the keypad, process it.

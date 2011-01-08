@@ -452,55 +452,94 @@ public Screen {
 
 
 
-  void seek_x_home() {
+  long seek_x_home() {
     Point currpos = steppers::getPosition();
+    long newx = currpos[0];
     if (lcdcfg::ENDSTOP_X_MIN_POS != lcdcfg::NO_ENDSTOP) {
       COMMAND_PUSH8(HOST_CMD_FIND_AXES_MINIMUM);
       COMMAND_PUSH8(0x1); // X axis only
       COMMAND_PUSH32(lcdcfg::JOG_STEP_DELAY_XY*3/2); // Step delay speed
       COMMAND_PUSH16(10); // seconds timeout
-      setpos((long)(lcdcfg::ENDSTOP_X_MIN_POS*lcdcfg::STEPS_PER_MM_XY), currpos[1], currpos[2]);
+      newx = (long)(lcdcfg::ENDSTOP_X_MIN_POS*lcdcfg::STEPS_PER_MM_XY);
     } else if (lcdcfg::ENDSTOP_X_MAX_POS != lcdcfg::NO_ENDSTOP) {
       COMMAND_PUSH8(HOST_CMD_FIND_AXES_MAXIMUM);
       COMMAND_PUSH8(0x1); // X axis only
       COMMAND_PUSH32(lcdcfg::JOG_STEP_DELAY_XY*3/2); // Step delay speed
       COMMAND_PUSH16(10); // seconds timeout
-      setpos((long)(lcdcfg::ENDSTOP_X_MAX_POS*lcdcfg::STEPS_PER_MM_XY), currpos[1], currpos[2]);
+      newx = (long)(lcdcfg::ENDSTOP_X_MAX_POS*lcdcfg::STEPS_PER_MM_XY);
     }
+    setpos(newx, currpos[1], currpos[2]);
+    return newx;
   }
 
 
 
-  void seek_y_home() {
+  long seek_y_home() {
     Point currpos = steppers::getPosition();
+    long newy = currpos[1];
     if (lcdcfg::ENDSTOP_Y_MIN_POS != lcdcfg::NO_ENDSTOP) {
       COMMAND_PUSH8(HOST_CMD_FIND_AXES_MINIMUM);
       COMMAND_PUSH8(0x2); // Y axis only
       COMMAND_PUSH32(lcdcfg::JOG_STEP_DELAY_XY*3/2); // Step delay speed
       COMMAND_PUSH16(10); // seconds timeout
-      setpos(currpos[0], (long)(lcdcfg::ENDSTOP_Y_MIN_POS*lcdcfg::STEPS_PER_MM_XY), currpos[2]);
+      newy = (long)(lcdcfg::ENDSTOP_Y_MIN_POS*lcdcfg::STEPS_PER_MM_XY);
     } else if (lcdcfg::ENDSTOP_Y_MAX_POS != lcdcfg::NO_ENDSTOP) {
       COMMAND_PUSH8(HOST_CMD_FIND_AXES_MAXIMUM);
       COMMAND_PUSH8(0x2); // Y axis only
       COMMAND_PUSH32(lcdcfg::JOG_STEP_DELAY_XY*3/2); // Step delay speed
       COMMAND_PUSH16(10); // seconds timeout
-      setpos(currpos[0], (long)(lcdcfg::ENDSTOP_Y_MAX_POS*lcdcfg::STEPS_PER_MM_XY), currpos[2]);
+      newy = (long)(lcdcfg::ENDSTOP_Y_MAX_POS*lcdcfg::STEPS_PER_MM_XY);
     }
+    setpos(currpos[0], newy, currpos[2]);
+    return newy;
   }
 
 
 
-  void seek_z_home() {
+  long seek_z_home() {
+    Point currpos = steppers::getPosition();
+    long newz = currpos[2];
     if (lcdcfg::ENDSTOP_Z_MIN_POS != lcdcfg::NO_ENDSTOP) {
-      Point currpos = steppers::getPosition();
       COMMAND_PUSH8(HOST_CMD_FIND_AXES_MINIMUM);
       COMMAND_PUSH8(0x4); // Z axis only
       COMMAND_PUSH32(lcdcfg::JOG_STEP_DELAY_Z); // Step delay speed
       COMMAND_PUSH16(65); // seconds timeout
-      setpos(currpos[0], currpos[1], (long)(lcdcfg::ENDSTOP_Z_MIN_POS*lcdcfg::STEPS_PER_MM_Z));
-      moveto(currpos[0], currpos[1], (long)(lcdcfg::Z_AXIS_REST_POS*lcdcfg::STEPS_PER_MM_Z), lcdcfg::JOG_STEP_DELAY_Z);
+      newz = (long)(lcdcfg::ENDSTOP_Z_MIN_POS*lcdcfg::STEPS_PER_MM_Z);
+      setpos(currpos[0], currpos[1], newz);
+      newz = (long)(lcdcfg::Z_AXIS_REST_POS*lcdcfg::STEPS_PER_MM_Z);
+      moveto(currpos[0], currpos[1], newz, lcdcfg::JOG_STEP_DELAY_Z);
     }
+    return newz;
   }
+
+
+  void seek_xyz_home() {
+    Point currpos = steppers::getPosition();
+    long newx = currpos[0];
+    long newy = currpos[1];
+    long newz = currpos[2];
+    newz = seek_z_home();
+    if (lcdcfg::ENDSTOP_X_MIN_POS != lcdcfg::NO_ENDSTOP && lcdcfg::ENDSTOP_Y_MIN_POS != lcdcfg::NO_ENDSTOP) {
+      COMMAND_PUSH8(HOST_CMD_FIND_AXES_MINIMUM);
+      COMMAND_PUSH8(0x3); // X & Y axis only
+      COMMAND_PUSH32(lcdcfg::JOG_STEP_DELAY_XY*3/2); // Step delay speed
+      COMMAND_PUSH16(10); // seconds timeout
+      newx = (long)(lcdcfg::ENDSTOP_X_MIN_POS*lcdcfg::STEPS_PER_MM_XY);
+      newy = (long)(lcdcfg::ENDSTOP_Y_MIN_POS*lcdcfg::STEPS_PER_MM_XY);
+    } else if (lcdcfg::ENDSTOP_X_MAX_POS != lcdcfg::NO_ENDSTOP && lcdcfg::ENDSTOP_Y_MAX_POS != lcdcfg::NO_ENDSTOP) {
+      COMMAND_PUSH8(HOST_CMD_FIND_AXES_MAXIMUM);
+      COMMAND_PUSH8(0x3); // X & Y axis only
+      COMMAND_PUSH32(lcdcfg::JOG_STEP_DELAY_XY*3/2); // Step delay speed
+      COMMAND_PUSH16(10); // seconds timeout
+      newx = (long)(lcdcfg::ENDSTOP_X_MAX_POS*lcdcfg::STEPS_PER_MM_XY);
+      newy = (long)(lcdcfg::ENDSTOP_Y_MAX_POS*lcdcfg::STEPS_PER_MM_XY);
+    } else {
+      newy = seek_y_home();
+      newx = seek_x_home();
+    }
+    setpos(newx, newy, newz);
+  }
+
 
 
   virtual uint8_t handleKey(char c) {
@@ -561,9 +600,7 @@ public Screen {
     case '8':
       lcdifc::clear();
       lcdifc::write_P(PSTR("\n    Seeking Home    "));
-      seek_z_home();
-      seek_x_home();
-      seek_y_home();
+      seek_xyz_home();
       moveto(0, 0, (long)(lcdcfg::Z_AXIS_REST_POS*lcdcfg::STEPS_PER_MM_Z), lcdcfg::JOG_STEP_DELAY_XY);
       Screen::change((Screen*)&default_screen);
       return 1;

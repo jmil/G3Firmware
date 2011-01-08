@@ -24,7 +24,7 @@
 
 namespace asynctwi {
 
-#define TWI_BUFFER_LENGTH 32
+#define TWI_BUFFER_LENGTH 16
 #define TWI_FREQ 100000
 
 // On write completion callback, data is null and len is how many bytes
